@@ -1,0 +1,29 @@
+targets:
+  acoes:
+    target: 50.0
+    min: 40.0
+    max: 60.0
+  renda_fixa:
+    target: 30.0
+    min: 25.0
+    max: 35.0
+  caixa:
+    target: 10.0
+    min: 5.0
+    max: 15.0
+  alternativos:
+    target: 10.0
+    min: 5.0
+    max: 15.0
+
+asset_targets:
+  TNLP3:
+    max: 5.0
+
+asset_map:
+  PETR4: acoes
+  VALE3: acoes
+  ITUB4: acoes
+  TNLP3: acoes
+  "TESOURO SELIC 2029": renda_fixa
+  "CDB BANCO XYZ": renda_fixa
