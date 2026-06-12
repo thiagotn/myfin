@@ -7,6 +7,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/thiagotn/investment-analyzer/internal/config"
+	"github.com/thiagotn/investment-analyzer/internal/report"
 	"github.com/thiagotn/investment-analyzer/internal/snapshot"
 )
 
@@ -58,7 +59,7 @@ var historyCmd = &cobra.Command{
 
 			table.Append([]string{
 				snap.Month,
-				fmt.Sprintf("R$ %.2f", snap.Portfolio.TotalValue),
+				"R$ " + report.FormatBRL(snap.Portfolio.TotalValue),
 				cdiStr,
 				ipcaStr,
 				ibovStr,
