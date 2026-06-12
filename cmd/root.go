@@ -3,14 +3,18 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/thiagotn/investment-analyzer/internal/config"
 	"github.com/thiagotn/investment-analyzer/internal/domain"
+	"golang.org/x/term"
 )
 
 var (
 	configPath string
+	passphrase string
+	passFlag   string
 	cfg        *domain.Config
 )
 
@@ -23,6 +27,8 @@ comparar alocações contra metas ARCA e rastrear desempenho vs benchmarks.`,
 		if cmd.Name() == "config" {
 			return nil
 		}
+
+		passphrase = resolvePassphrase(passFlag)
 
 		if configPath == "" {
 			dir, err := config.ConfigDir()
@@ -52,6 +58,7 @@ comparar alocações contra metas ARCA e rastrear desempenho vs benchmarks.`,
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Caminho para config.yaml")
+	rootCmd.PersistentFlags().StringVar(&passFlag, "passphrase", "", "Frase-senha para criptografia (aviso: exposta no shell history)")
 
 	rootCmd.AddCommand(analyzeCmd)
 	rootCmd.AddCommand(historyCmd)
@@ -63,4 +70,26 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func resolvePassphrase(flagValue string) string {
+	if flagValue != "" {
+		return flagValue
+	}
+
+	if envPass := os.Getenv("ANALYZER_PASSPHRASE"); envPass != "" {
+		return envPass
+	}
+
+	return ""
+}
+
+func promptPassphrase() (string, error) {
+	fmt.Print("Digite a frase-senha (não será exibida): ")
+	bytePassword, err := term.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		return "", fmt.Errorf("falha ao ler frase-senha: %w", err)
+	}
+	fmt.Println()
+	return strings.TrimSpace(string(bytePassword)), nil
 }

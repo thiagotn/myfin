@@ -4,7 +4,6 @@ investment-analyzer
 *.dylib
 *.dll
 *.exe
-go.sum
 dist/
 build/
 .DS_Store
@@ -14,3 +13,8 @@ build/
 .idea/
 .vscode/
 *.iml
+
+# Snapshots: bloqueia plaintext, permite versões criptografadas
+*.json
+!*.json.enc
+snapshots/

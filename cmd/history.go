@@ -22,7 +22,7 @@ var historyCmd = &cobra.Command{
 		}
 
 		snapDir := config.SnapshotsDir(dir)
-		store, err := snapshot.NewStore(snapDir)
+		store, err := snapshot.NewStore(snapDir, passphrase)
 		if err != nil {
 			return err
 		}

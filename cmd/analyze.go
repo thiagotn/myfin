@@ -81,7 +81,7 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			snapDir := config.SnapshotsDir(dir)
-			store, err := snapshot.NewStore(snapDir)
+			store, err := snapshot.NewStore(snapDir, passphrase)
 			if err != nil {
 				return err
 			}
@@ -109,7 +109,7 @@ var analyzeCmd = &cobra.Command{
 			if saveSnapshot {
 				dir, _ := config.ConfigDir()
 				snapDir := config.SnapshotsDir(dir)
-				store, _ := snapshot.NewStore(snapDir)
+				store, _ := snapshot.NewStore(snapDir, passphrase)
 				snapshots, _ := store.LoadRecent(12)
 				for i := range snapshots {
 					historical = append(historical, &snapshots[i])
