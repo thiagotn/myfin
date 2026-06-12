@@ -8,6 +8,7 @@ A local-first CLI tool for analyzing and benchmarking your investment portfolio 
 - **ARCA Classification**: Automatically categorize assets into Ações, Renda Fixa, Caixa, and Alternativos
 - **Allocation Analysis**: Compare your actual allocation vs. target percentages
 - **Snapshot History**: Save monthly snapshots and track changes over time
+- **Encrypted Snapshots**: AES-256-GCM encryption for secure storage in git repositories
 - **Benchmarks**: Fetch CDI, IPCA, and IBOV data from public APIs (BACEN, brapi.dev)
 - **Reports**: Terminal tables and interactive HTML charts (Plotly)
 
@@ -60,16 +61,23 @@ asset_map:
   "TESOURO SELIC 2029": renda_fixa
 ```
 
-### 3. Analyze Your Portfolio
+### 3. Analyze Your Portfolio (with Optional Encryption)
 
 ```bash
+# Without encryption (plaintext snapshot)
 ./investment-analyzer analyze --file carteira.csv --month 2025-06 --save
+
+# With AES-256-GCM encryption (recommended for git)
+export ANALYZER_PASSPHRASE="your-secure-passphrase"
+./investment-analyzer analyze --file carteira.csv --month 2025-06 --save
+# Creates ~/.investment-analyzer/snapshots/2025-06.json.enc
 ```
 
 **Options:**
 - `--file` — CSV file to analyze (required)
 - `--month` — Reference month in YYYY-MM format (default: current month)
 - `--save` — Save snapshot for historical tracking
+- `--passphrase` — Optional: provide passphrase via CLI (not recommended; use env var instead)
 - `--no-fetch` — Skip fetching benchmark data
 - `--no-browser` — Don't open HTML report in browser
 
@@ -129,7 +137,11 @@ All data is stored locally under `~/.investment-analyzer/`:
     └── ...
 ```
 
-**No sensitive data is ever sent to external APIs.** Only portfolio snapshots are saved locally. Benchmark data (CDI, IPCA, IBOV) is fetched on-demand from public APIs.
+**Data Privacy:**
+- No sensitive data is ever sent to external APIs
+- Portfolio snapshots can be encrypted (AES-256-GCM) for safe git storage
+- Benchmark data (CDI, IPCA, IBOV) is fetched on-demand from public APIs only
+- See [SECURITY.md](SECURITY.md) for detailed encryption and privacy guidelines
 
 ## API Integration
 
