@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/browser"
@@ -36,16 +37,26 @@ var analyzeCmd = &cobra.Command{
 			analyzeMonth = time.Now().Format("2006-01")
 		}
 
-		file, err := os.Open(analyzeFile)
-		if err != nil {
-			return fmt.Errorf("falha ao abrir arquivo CSV: %w", err)
-		}
-		defer file.Close()
+		var assets []domain.Asset
+		var err error
+		if strings.HasSuffix(strings.ToLower(analyzeFile), ".xlsx") {
+			fmt.Println("Lendo XLSX (Posição Detalhada Rico)...")
+			assets, err = parser.ParseRicoXLSX(analyzeFile, cfg)
+			if err != nil {
+				return err
+			}
+		} else {
+			file, err := os.Open(analyzeFile)
+			if err != nil {
+				return fmt.Errorf("falha ao abrir arquivo CSV: %w", err)
+			}
+			defer file.Close()
 
-		fmt.Println("Analisando CSV...")
-		assets, err := parser.ParseFile(file, cfg.AssetMap)
-		if err != nil {
-			return err
+			fmt.Println("Analisando CSV...")
+			assets, err = parser.ParseFile(file, cfg.AssetMap)
+			if err != nil {
+				return err
+			}
 		}
 
 		fmt.Printf("Encontrados %d ativos\n\n", len(assets))

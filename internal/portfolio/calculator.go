@@ -1,67 +1,82 @@
 package portfolio
 
 import (
+	"sort"
+
 	"github.com/thiagotn/investment-analyzer/internal/domain"
 )
 
 type Calculator struct{}
 
-func (c *Calculator) Compute(assets []domain.Asset, reference string) *domain.Portfolio {
-	portfolio := &domain.Portfolio{
-		Reference:  reference,
-		TotalValue: 0,
-		Assets:     make([]domain.AssetSummary, 0),
-		Classes:    make(map[domain.ARCAClass]domain.ClassSummary),
+func NewCalculator() *Calculator {
+	return &Calculator{}
+}
+
+func (c *Calculator) Compute(assets []domain.Asset, reference string, cfg *domain.Config) *domain.Portfolio {
+	p := &domain.Portfolio{
+		Reference: reference,
+		Assets:    make([]domain.AssetSummary, 0, len(assets)),
+		Classes:   make([]domain.ClassSummary, 0, len(cfg.Classes)),
 	}
 
 	classValues := make(map[domain.ARCAClass]float64)
-
-	for _, asset := range assets {
-		portfolio.TotalValue += asset.TotalValue
-		classValues[asset.Class] += asset.TotalValue
-
-		summary := domain.AssetSummary{
-			Asset: asset,
-		}
-		portfolio.Assets = append(portfolio.Assets, summary)
+	for _, a := range assets {
+		p.TotalValue += a.TotalValue
+		classValues[a.Class] += a.TotalValue
+		p.Assets = append(p.Assets, domain.AssetSummary{Asset: a})
 	}
 
-	for _, class := range []domain.ARCAClass{
-		domain.ClassAcoes,
-		domain.ClassRendaFixa,
-		domain.ClassCaixa,
-		domain.ClassAlternativos,
-	} {
-		portfolio.Classes[class] = domain.ClassSummary{
-			Class:      class,
-			TotalValue: classValues[class],
+	if p.TotalValue != 0 {
+		for i := range p.Assets {
+			p.Assets[i].Percentage = p.Assets[i].TotalValue / p.TotalValue * 100
 		}
 	}
 
-	if portfolio.TotalValue > 0 {
-		for i := range portfolio.Assets {
-			portfolio.Assets[i].Percentage = (portfolio.Assets[i].TotalValue / portfolio.TotalValue) * 100
+	pct := func(v float64) float64 {
+		if p.TotalValue == 0 {
+			return 0
 		}
-
-		for class := range portfolio.Classes {
-			summary := portfolio.Classes[class]
-			summary.Percentage = (summary.TotalValue / portfolio.TotalValue) * 100
-			portfolio.Classes[class] = summary
-		}
+		return v / p.TotalValue * 100
 	}
 
-	return portfolio
+	seen := make(map[domain.ARCAClass]bool)
+	for _, cd := range cfg.Classes {
+		p.Classes = append(p.Classes, domain.ClassSummary{
+			Class:      cd.Key,
+			Label:      cd.Label,
+			TotalValue: classValues[cd.Key],
+			Percentage: pct(classValues[cd.Key]),
+			Target:     cd.TargetSpec(),
+		})
+		seen[cd.Key] = true
+	}
+
+	// Ativos cuja classe não está no config: exibir como "não mapeado".
+	var leftover []domain.ARCAClass
+	for k := range classValues {
+		if !seen[k] {
+			leftover = append(leftover, k)
+		}
+	}
+	sort.Slice(leftover, func(i, j int) bool { return leftover[i] < leftover[j] })
+	for _, k := range leftover {
+		label := "(não mapeado)"
+		if k != "" {
+			label = "(não mapeado: " + string(k) + ")"
+		}
+		p.Classes = append(p.Classes, domain.ClassSummary{
+			Class:      k,
+			Label:      label,
+			TotalValue: classValues[k],
+			Percentage: pct(classValues[k]),
+		})
+	}
+
+	return p
 }
 
 func (c *Calculator) ComputeWithTargets(assets []domain.Asset, reference string, cfg *domain.Config) *domain.Portfolio {
-	portfolio := c.Compute(assets, reference)
-
-	aligner := &Aligner{}
-	aligner.Evaluate(portfolio, cfg)
-
-	return portfolio
-}
-
-func NewCalculator() *Calculator {
-	return &Calculator{}
+	p := c.Compute(assets, reference, cfg)
+	NewAligner().Evaluate(p, cfg)
+	return p
 }

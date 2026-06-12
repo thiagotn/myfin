@@ -95,7 +95,7 @@ func (r *RicoParser) parseRecord(record []string, assetMap map[string]domain.ARC
 		return nil, fmt.Errorf("invalid total value: %w", err)
 	}
 
-	class := domain.ClassCaixa
+	var class domain.ARCAClass = "" // não mapeado por padrão
 	if mapped, exists := assetMap[produto]; exists {
 		class = mapped
 	} else {
@@ -162,7 +162,7 @@ func (b *B3Parser) parseRecord(record []string, assetMap map[string]domain.ARCAC
 		return nil, fmt.Errorf("invalid valor atualizado: %w", err)
 	}
 
-	class := domain.ClassCaixa
+	var class domain.ARCAClass = "" // não mapeado por padrão
 	if mapped, exists := assetMap[produto]; exists {
 		class = mapped
 	} else {

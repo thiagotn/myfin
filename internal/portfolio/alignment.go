@@ -6,30 +6,33 @@ import (
 
 type Aligner struct{}
 
-func (a *Aligner) Evaluate(portfolio *domain.Portfolio, cfg *domain.Config) {
-	for class := range portfolio.Classes {
-		summary := portfolio.Classes[class]
-		target := cfg.Targets[class]
+func NewAligner() *Aligner {
+	return &Aligner{}
+}
 
-		summary.Target = target
-		summary.Deviation = summary.Percentage - target.Target
-		summary.Status = a.evaluateStatus(summary.Percentage, target)
-
-		portfolio.Classes[class] = summary
+func (a *Aligner) Evaluate(p *domain.Portfolio, cfg *domain.Config) {
+	for i := range p.Classes {
+		s := &p.Classes[i]
+		s.Deviation = s.Percentage - s.Target.Target
+		s.Status = a.evaluateStatus(s.Percentage, s.Target)
 	}
 
-	for i, asset := range portfolio.Assets {
-		assetTarget, exists := cfg.AssetTargets[asset.Ticker]
-		if exists {
-			asset.Target = &assetTarget
-			asset.Deviation = asset.Percentage - assetTarget.Target
-			asset.Status = a.evaluateAssetStatus(asset.Percentage, assetTarget)
+	for i := range p.Assets {
+		t, ok := cfg.AssetTargets[p.Assets[i].Ticker]
+		if !ok {
+			continue
 		}
-		portfolio.Assets[i] = asset
+		p.Assets[i].Target = &t
+		p.Assets[i].Deviation = p.Assets[i].Percentage - t.Target
+		p.Assets[i].Status = a.evaluateAssetStatus(p.Assets[i].Percentage, t)
 	}
 }
 
 func (a *Aligner) evaluateStatus(percentage float64, target domain.Target) domain.AlignmentStatus {
+	// Classe sem meta definida (ex: não mapeada): status neutro.
+	if target.Min == 0 && target.Max == 0 && target.Target == 0 {
+		return domain.StatusOnTarget
+	}
 	if percentage >= target.Min && percentage <= target.Max {
 		return domain.StatusOnTarget
 	}
@@ -47,8 +50,4 @@ func (a *Aligner) evaluateAssetStatus(percentage float64, target domain.Target) 
 		return domain.StatusBelow
 	}
 	return domain.StatusOnTarget
-}
-
-func NewAligner() *Aligner {
-	return &Aligner{}
 }

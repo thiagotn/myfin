@@ -29,7 +29,9 @@ func NewHTMLReporter() *HTMLReporter {
 }
 
 func (hr *HTMLReporter) Generate(portfolio *domain.Portfolio, benchmarks *domain.BenchmarkData, historical []*domain.Snapshot) (string, error) {
-	tmpl, err := template.New("report").Parse(reportTemplate)
+	tmpl, err := template.New("report").Funcs(template.FuncMap{
+		"brl": FormatBRL,
+	}).Parse(reportTemplate)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %w", err)
 	}

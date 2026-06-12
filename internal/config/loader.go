@@ -32,9 +32,9 @@ func Load(configPath string) (*domain.Config, error) {
 	}
 
 	cfg := &domain.Config{
-		Targets:      make(map[domain.ARCAClass]domain.Target),
 		AssetTargets: make(map[string]domain.Target),
 		AssetMap:     make(map[string]domain.ARCAClass),
+		RicoMap:      make(map[string]domain.ARCAClass),
 	}
 
 	if err := yaml.Unmarshal(data, cfg); err != nil {
@@ -64,29 +64,32 @@ func Save(cfg *domain.Config, configPath string) error {
 
 func DefaultConfig() *domain.Config {
 	return &domain.Config{
-		Targets: map[domain.ARCAClass]domain.Target{
-			domain.ClassAcoes: {
-				Target: 50.0,
-				Min:    40.0,
-				Max:    60.0,
-			},
-			domain.ClassRendaFixa: {
-				Target: 30.0,
-				Min:    25.0,
-				Max:    35.0,
-			},
-			domain.ClassCaixa: {
-				Target: 10.0,
-				Min:    5.0,
-				Max:    15.0,
-			},
-			domain.ClassAlternativos: {
-				Target: 10.0,
-				Min:    5.0,
-				Max:    15.0,
-			},
+		Classes: []domain.ClassDef{
+			{Key: "renda_fixa", Label: "C - Renda Fixa", Target: 40, Min: 35, Max: 45},
+			{Key: "acoes_br", Label: "A - Ações Brasil", Target: 30, Min: 25, Max: 35},
+			{Key: "internacional", Label: "A - Internacional", Target: 20, Min: 15, Max: 25},
+			{Key: "fii", Label: "R - FII / Real Estate", Target: 10, Min: 5, Max: 15},
+		},
+		// Mapeia categorias do relatório Rico -> classe (auto-classificação).
+		RicoMap: map[string]domain.ARCAClass{
+			"Prefixado":             "renda_fixa",
+			"Pós-Fixado":            "renda_fixa",
+			"Inflação":              "renda_fixa",
+			"Tesouro Direto":        "renda_fixa",
+			"Previdência Privada":   "renda_fixa",
+			"Multimercados":         "renda_fixa",
+			"Renda Variável Brasil": "acoes_br",
+			"Renda Fixa Global":     "internacional",
+			"Alternativos":          "internacional",
+			"Fundos Imobiliários":   "fii",
+			"Fundos Listados":       "fii",
+		},
+		// Ajustes manuais por ativo (sobrescrevem a auto-classificação).
+		AssetMap: map[string]domain.ARCAClass{
+			"WRLD11": "internacional", // ETF mundial
+			"GOLD11": "internacional", // ouro
+			"BITH11": "internacional", // cripto
 		},
 		AssetTargets: make(map[string]domain.Target),
-		AssetMap:     make(map[string]domain.ARCAClass),
 	}
 }
