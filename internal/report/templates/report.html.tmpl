@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Report - {{.Portfolio.Reference}}</title>
+    <title>Relatório de Carteira - {{.Portfolio.Reference}}</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
@@ -72,26 +72,26 @@
 </head>
 <body>
     <div class="container">
-        <h1>Portfolio Report - {{.Portfolio.Reference}}</h1>
+        <h1>Relatório de Carteira - {{.Portfolio.Reference}}</h1>
 
         <div class="summary">
-            <strong>Total Value:</strong> R$ {{printf "%.2f" .Portfolio.TotalValue}}<br>
-            <strong>Generated:</strong> {{.CreatedAt.Format "2006-01-02 15:04:05"}}
+            <strong>Valor Total:</strong> R$ {{printf "%.2f" .Portfolio.TotalValue}}<br>
+            <strong>Gerado em:</strong> {{.CreatedAt.Format "02/01/2006 15:04:05"}}
         </div>
 
         <div class="chart-container">
-            <div class="chart-title">Portfolio Allocation by Class</div>
+            <div class="chart-title">Alocação da Carteira por Classe</div>
             <div id="pieChart" class="chart"></div>
         </div>
 
         <div class="chart-container">
-            <div class="chart-title">Deviation from Target (%)</div>
-            <div id="barChart" class="chart"></div>
+            <div class="chart-title">Desvio da Meta</div>
+            <div id="deviationChart" class="chart"></div>
         </div>
 
         {{if .HistoricalData}}
         <div class="chart-container">
-            <div class="chart-title">Portfolio Value Over Time vs Benchmarks</div>
+            <div class="chart-title">Valor da Carteira ao Longo do Tempo vs Benchmarks</div>
             <div id="lineChart" class="chart"></div>
         </div>
         {{end}}
@@ -115,10 +115,20 @@
     </div>
 
     <script>
-        // Pie Chart
+        function translateClassName(name) {
+            const translations = {
+                'acoes': 'Ações',
+                'renda_fixa': 'Renda Fixa',
+                'caixa': 'Caixa',
+                'alternativos': 'Alternativos'
+            };
+            return translations[name] || name;
+        }
+
+        // Pie Chart - Portfolio Allocation
         const pieData = [{{range $class, $summary := .Portfolio.Classes}}{
             values: [{{printf "%.2f" $summary.Percentage}}],
-            labels: ['{{$class}}'],
+            labels: [translateClassName('{{$class}}')],
             type: 'pie',
             name: '{{$class}}',
             text: '{{printf "%.2f%%" $summary.Percentage}}',
@@ -126,33 +136,34 @@
         },{{end}}];
 
         const pieLayout = {
-            title: 'Portfolio Allocation by Asset Class',
+            title: 'Alocação da Carteira por Classe',
             height: 500
         };
 
         Plotly.newPlot('pieChart', pieData, pieLayout, {responsive: true});
 
-        // Bar Chart
-        const barClasses = [{{range $class, $summary := .Portfolio.Classes}}'{{$class}}',{{end}}];
-        const barDeviations = [{{range $class, $summary := .Portfolio.Classes}}{{printf "%.2f" $summary.Deviation}},{{end}}];
-        const barColors = [{{range $class, $summary := .Portfolio.Classes}}
-            {{if eq $summary.Status "on_target"}}'green'{{else if eq $summary.Status "above"}}'orange'{{else}}'red'{{end}},
+        // Pie Chart - Deviation from Target
+        const deviationLabels = [{{range $class, $summary := .Portfolio.Classes}}'{{$class}}',{{end}}];
+        const deviationValues = [{{range $class, $summary := .Portfolio.Classes}}{{printf "%.2f" $summary.Deviation}},{{end}}];
+        const deviationColors = [{{range $class, $summary := .Portfolio.Classes}}
+            {{if eq $summary.Status "on_target"}}'#2ecc71'{{else if eq $summary.Status "above"}}'#f39c12'{{else}}'#e74c3c'{{end}},
         {{end}}];
 
-        const barTrace = {
-            x: barClasses,
-            y: barDeviations,
-            type: 'bar',
-            marker: {color: barColors}
+        const deviationTrace = {
+            labels: deviationLabels.map(translateClassName),
+            values: deviationValues,
+            type: 'pie',
+            marker: {colors: deviationColors},
+            text: deviationValues.map((v, i) => v.toFixed(2) + ' pp'),
+            textposition: 'inside'
         };
 
-        const barLayout = {
-            title: 'Deviation from Target (%)',
-            yaxis: {title: 'Deviation (pp)'},
+        const deviationLayout = {
+            title: 'Desvio da Meta (%)',
             height: 400
         };
 
-        Plotly.newPlot('barChart', [barTrace], barLayout, {responsive: true});
+        Plotly.newPlot('deviationChart', [deviationTrace], deviationLayout, {responsive: true});
 
         {{if .HistoricalData}}
         // Line Chart
@@ -161,13 +172,13 @@
             y: [{{range .HistoricalData}}{{printf "%.2f" .Portfolio.TotalValue}},{{end}}],
             type: 'scatter',
             mode: 'lines+markers',
-            name: 'Portfolio'
+            name: 'Carteira'
         };
 
         const lineLayout = {
-            title: 'Portfolio Value Over Time',
-            xaxis: {title: 'Month'},
-            yaxis: {title: 'Value (R$)'},
+            title: 'Valor da Carteira ao Longo do Tempo',
+            xaxis: {title: 'Mês'},
+            yaxis: {title: 'Valor (R$)'},
             height: 400,
             hovermode: 'closest'
         };

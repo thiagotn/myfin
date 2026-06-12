@@ -26,10 +26,10 @@ var (
 
 var analyzeCmd = &cobra.Command{
 	Use:   "analyze",
-	Short: "Analyze your investment portfolio",
+	Short: "Analise sua carteira de investimentos",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if analyzeFile == "" {
-			return fmt.Errorf("--file is required")
+			return fmt.Errorf("--file é obrigatório")
 		}
 
 		if analyzeMonth == "" {
@@ -38,17 +38,17 @@ var analyzeCmd = &cobra.Command{
 
 		file, err := os.Open(analyzeFile)
 		if err != nil {
-			return fmt.Errorf("failed to open CSV file: %w", err)
+			return fmt.Errorf("falha ao abrir arquivo CSV: %w", err)
 		}
 		defer file.Close()
 
-		fmt.Println("Parsing CSV...")
+		fmt.Println("Analisando CSV...")
 		assets, err := parser.ParseFile(file, cfg.AssetMap)
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("Found %d assets\n\n", len(assets))
+		fmt.Printf("Encontrados %d ativos\n\n", len(assets))
 
 		calc := portfolio.NewCalculator()
 		port := calc.ComputeWithTargets(assets, analyzeMonth, cfg)
@@ -57,7 +57,7 @@ var analyzeCmd = &cobra.Command{
 
 		var benchmarks *domain.BenchmarkData
 		if !noFetch {
-			fmt.Println("Fetching benchmarks...")
+			fmt.Println("Buscando benchmarks...")
 
 			cdiVal, _ := benchmark.NewBACENClient().GetCDI(analyzeMonth)
 			ipcaVal, _ := benchmark.NewBACENClient().GetIPCA(analyzeMonth)
@@ -74,7 +74,7 @@ var analyzeCmd = &cobra.Command{
 		tr.Print(port, benchmarks)
 
 		if saveSnapshot {
-			fmt.Println("\nSaving snapshot...")
+			fmt.Println("\nSalvando snapshot...")
 			dir, err := config.ConfigDir()
 			if err != nil {
 				return err
@@ -98,11 +98,11 @@ var analyzeCmd = &cobra.Command{
 			if err := store.Save(snap); err != nil {
 				return err
 			}
-			fmt.Printf("Snapshot saved to %s\n", snapDir)
+			fmt.Printf("Snapshot salvo em %s\n", snapDir)
 		}
 
 		if !noBrowser {
-			fmt.Println("\nGenerating HTML report...")
+			fmt.Println("\nGerando relatório HTML...")
 			hr := report.NewHTMLReporter()
 
 			var historical []*domain.Snapshot
@@ -122,7 +122,7 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			if err := browser.OpenURL("file://" + htmlPath); err != nil {
-				fmt.Printf("Could not open browser automatically. Open this file: %s\n", htmlPath)
+				fmt.Printf("Não foi possível abrir o navegador automaticamente. Abra este arquivo: %s\n", htmlPath)
 			}
 		}
 
@@ -131,9 +131,9 @@ var analyzeCmd = &cobra.Command{
 }
 
 func init() {
-	analyzeCmd.Flags().StringVar(&analyzeFile, "file", "", "CSV file to analyze (required)")
-	analyzeCmd.Flags().StringVar(&analyzeMonth, "month", "", "Reference month (YYYY-MM, default: current month)")
-	analyzeCmd.Flags().BoolVar(&noFetch, "no-fetch", false, "Skip fetching benchmark data")
-	analyzeCmd.Flags().BoolVar(&noBrowser, "no-browser", false, "Don't open HTML report in browser")
-	analyzeCmd.Flags().BoolVar(&saveSnapshot, "save", false, "Save snapshot for historical tracking")
+	analyzeCmd.Flags().StringVar(&analyzeFile, "file", "", "Arquivo CSV para analisar (obrigatório)")
+	analyzeCmd.Flags().StringVar(&analyzeMonth, "month", "", "Mês de referência (YYYY-MM, padrão: mês atual)")
+	analyzeCmd.Flags().BoolVar(&noFetch, "no-fetch", false, "Pular busca de dados de benchmark")
+	analyzeCmd.Flags().BoolVar(&noBrowser, "no-browser", false, "Não abrir relatório HTML no navegador")
+	analyzeCmd.Flags().BoolVar(&saveSnapshot, "save", false, "Salvar snapshot para rastreamento histórico")
 }

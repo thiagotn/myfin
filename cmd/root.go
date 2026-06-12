@@ -16,9 +16,9 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "investment-analyzer",
-	Short: "Analyze and benchmark your investment portfolio",
-	Long: `Investment Analyzer is a CLI tool to analyze your investment portfolio,
-compare allocations against ARCA targets, and track performance vs benchmarks.`,
+	Short: "Analise e benchmark da sua carteira de investimentos",
+	Long: `Investment Analyzer é uma ferramenta CLI para analisar sua carteira de investimentos,
+comparar alocações contra metas ARCA e rastrear desempenho vs benchmarks.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if cmd.Name() == "config" {
 			return nil
@@ -35,15 +35,15 @@ compare allocations against ARCA targets, and track performance vs benchmarks.`,
 		c, err := config.Load(configPath)
 		if err != nil {
 			if os.IsNotExist(err) {
-				fmt.Printf("Creating default config at %s\n", configPath)
+				fmt.Printf("Criando configuração padrão em %s\n", configPath)
 				defaultCfg := config.DefaultConfig()
 				if err := config.Save(defaultCfg, configPath); err != nil {
-					return fmt.Errorf("failed to create default config: %w", err)
+					return fmt.Errorf("falha ao criar configuração padrão: %w", err)
 				}
 				cfg = defaultCfg
 				return nil
 			}
-			return fmt.Errorf("failed to load config: %w", err)
+			return fmt.Errorf("falha ao carregar configuração: %w", err)
 		}
 		cfg = c
 		return nil
@@ -51,7 +51,7 @@ compare allocations against ARCA targets, and track performance vs benchmarks.`,
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Path to config.yaml")
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Caminho para config.yaml")
 
 	rootCmd.AddCommand(analyzeCmd)
 	rootCmd.AddCommand(historyCmd)

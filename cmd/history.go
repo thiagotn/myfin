@@ -14,7 +14,7 @@ var historyMonths int
 
 var historyCmd = &cobra.Command{
 	Use:   "history",
-	Short: "View portfolio history and performance vs benchmarks",
+	Short: "Visualize histórico da carteira e desempenho vs benchmarks",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, err := config.ConfigDir()
 		if err != nil {
@@ -29,16 +29,16 @@ var historyCmd = &cobra.Command{
 
 		snapshots, err := store.LoadRecent(historyMonths)
 		if err != nil {
-			return fmt.Errorf("failed to load snapshots: %w", err)
+			return fmt.Errorf("falha ao carregar snapshots: %w", err)
 		}
 
 		if len(snapshots) == 0 {
-			fmt.Println("No snapshots found. Run 'analyze --save' first.")
+			fmt.Println("Nenhum snapshot encontrado. Execute 'analyze --save' primeiro.")
 			return nil
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Month", "Total Value", "CDI", "IPCA", "IBOV"})
+		table.SetHeader([]string{"Mês", "Valor Total", "CDI", "IPCA", "IBOV"})
 		table.SetBorder(true)
 
 		for _, snap := range snapshots {
@@ -72,5 +72,5 @@ var historyCmd = &cobra.Command{
 }
 
 func init() {
-	historyCmd.Flags().IntVar(&historyMonths, "months", 12, "Number of months to display")
+	historyCmd.Flags().IntVar(&historyMonths, "months", 12, "Número de meses para exibir")
 }

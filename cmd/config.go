@@ -16,7 +16,7 @@ var (
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Manage configuration",
+	Short: "Gerenciar configuração",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if configInit {
 			if configPath == "" {
@@ -28,7 +28,7 @@ var configCmd = &cobra.Command{
 			}
 
 			if _, err := os.Stat(configPath); err == nil {
-				fmt.Printf("Config already exists at %s\n", configPath)
+				fmt.Printf("Configuração já existe em %s\n", configPath)
 				return nil
 			}
 
@@ -36,7 +36,7 @@ var configCmd = &cobra.Command{
 			if err := config.Save(defaultCfg, configPath); err != nil {
 				return err
 			}
-			fmt.Printf("Created default config at %s\n", configPath)
+			fmt.Printf("Configuração padrão criada em %s\n", configPath)
 			return nil
 		}
 
@@ -73,6 +73,6 @@ var configCmd = &cobra.Command{
 }
 
 func init() {
-	configCmd.Flags().BoolVar(&configShow, "show", false, "Display current configuration")
-	configCmd.Flags().BoolVar(&configInit, "init", false, "Initialize default configuration")
+	configCmd.Flags().BoolVar(&configShow, "show", false, "Exibir configuração atual")
+	configCmd.Flags().BoolVar(&configInit, "init", false, "Inicializar configuração padrão")
 }

@@ -18,7 +18,7 @@ func NewTerminalReporter(w io.Writer) *TerminalReporter {
 }
 
 func (tr *TerminalReporter) Print(portfolio *domain.Portfolio, benchmarks *domain.BenchmarkData) {
-	fmt.Fprintf(tr.w, "\n=== Portfolio Analysis for %s ===\n\n", portfolio.Reference)
+	fmt.Fprintf(tr.w, "\n=== Análise de Carteira para %s ===\n\n", portfolio.Reference)
 
 	tr.printClassSummary(portfolio)
 	fmt.Fprintf(tr.w, "\n")
@@ -33,7 +33,7 @@ func (tr *TerminalReporter) Print(portfolio *domain.Portfolio, benchmarks *domai
 
 func (tr *TerminalReporter) printClassSummary(portfolio *domain.Portfolio) {
 	table := tablewriter.NewWriter(tr.w)
-	table.SetHeader([]string{"Class", "Value", "Percentage", "Target", "Deviation", "Status"})
+	table.SetHeader([]string{"Classe", "Valor", "Percentual", "Meta", "Desvio", "Status"})
 	table.SetBorder(true)
 
 	for _, class := range []domain.ARCAClass{
@@ -51,7 +51,7 @@ func (tr *TerminalReporter) printClassSummary(portfolio *domain.Portfolio) {
 		deviation := fmt.Sprintf("%.2f pp", summary.Deviation)
 
 		table.Append([]string{
-			string(summary.Class),
+			tr.translateClass(summary.Class),
 			fmt.Sprintf("R$ %.2f", summary.TotalValue),
 			fmt.Sprintf("%.2f%%", summary.Percentage),
 			fmt.Sprintf("%.2f%%", summary.Target.Target),
@@ -66,7 +66,7 @@ func (tr *TerminalReporter) printClassSummary(portfolio *domain.Portfolio) {
 
 func (tr *TerminalReporter) printAssetSummary(portfolio *domain.Portfolio) {
 	table := tablewriter.NewWriter(tr.w)
-	table.SetHeader([]string{"Ticker", "Name", "Qty", "Unit Price", "Total Value", "Percentage", "Status"})
+	table.SetHeader([]string{"Ticker", "Nome", "Qtd", "Preço Unitário", "Valor Total", "Percentual", "Status"})
 	table.SetBorder(true)
 
 	for _, asset := range portfolio.Assets {
@@ -93,16 +93,26 @@ func (tr *TerminalReporter) printBenchmarks(benchmarks *domain.BenchmarkData) {
 	fmt.Fprintf(tr.w, "  IBOV: %.2f\n", benchmarks.IBOV)
 }
 
+func (tr *TerminalReporter) translateClass(class domain.ARCAClass) string {
+	translations := map[domain.ARCAClass]string{
+		domain.ClassAcoes:        "Ações",
+		domain.ClassRendaFixa:    "Renda Fixa",
+		domain.ClassCaixa:        "Caixa",
+		domain.ClassAlternativos: "Alternativos",
+	}
+	return translations[class]
+}
+
 func colorizeStatus(status domain.AlignmentStatus) string {
 	switch status {
 	case domain.StatusOnTarget:
-		return color.GreenString("ON TARGET")
+		return color.GreenString("NA META")
 	case domain.StatusAbove:
-		return color.YellowString("ABOVE")
+		return color.YellowString("ACIMA")
 	case domain.StatusBelow:
-		return color.RedString("BELOW")
+		return color.RedString("ABAIXO")
 	default:
-		return "UNKNOWN"
+		return "DESCONHECIDO"
 	}
 }
 
