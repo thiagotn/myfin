@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -19,63 +21,58 @@ type bacenRate struct {
 
 func NewBACENClient() *BACENClient {
 	return &BACENClient{
-		client: &http.Client{Timeout: 10 * time.Second},
+		client: &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
+// GetCDI retorna o CDI acumulado no mês (série 4391, já em % a.m.).
 func (bc *BACENClient) GetCDI(month string) (float64, error) {
-	return bc.getSeries(month, "4389")
+	return bc.monthlyValue(month, "4391")
 }
 
+// GetIPCA retorna o IPCA do mês (série 433, variação mensal em %).
 func (bc *BACENClient) GetIPCA(month string) (float64, error) {
-	return bc.getSeries(month, "433")
+	return bc.monthlyValue(month, "433")
 }
 
-func (bc *BACENClient) getSeries(month, series string) (float64, error) {
+// monthlyValue busca os últimos meses de uma série mensal e retorna o valor
+// do mês solicitado (formato "YYYY-MM"). O valor já é o percentual do mês.
+func (bc *BACENClient) monthlyValue(month, series string) (float64, error) {
 	url := fmt.Sprintf(
-		"https://api.bcb.gov.br/dados/serie/bcdata.sgs.%s/dados?formato=json",
+		"https://api.bcb.gov.br/dados/serie/bcdata.sgs.%s/dados/ultimos/12?formato=json",
 		series,
 	)
 
 	resp, err := bc.client.Get(url)
 	if err != nil {
-		return 0, fmt.Errorf("failed to fetch BACEN data: %w", err)
+		return 0, fmt.Errorf("falha ao buscar dados BACEN: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return 0, fmt.Errorf("BACEN API error: %d - %s", resp.StatusCode, string(body))
+		return 0, fmt.Errorf("erro na API BACEN: %d - %s", resp.StatusCode, string(body))
 	}
 
 	var rates []bacenRate
 	if err := json.NewDecoder(resp.Body).Decode(&rates); err != nil {
-		return 0, fmt.Errorf("failed to decode BACEN response: %w", err)
+		return 0, fmt.Errorf("falha ao decodificar resposta BACEN: %w", err)
 	}
 
-	total := 1.0
 	for _, rate := range rates {
-		rateDate := parseDate(rate.Data)
-		if rateDate.Format("2006-01") != month {
+		t, err := time.Parse("02/01/2006", rate.Data)
+		if err != nil {
 			continue
 		}
-
-		var val float64
-		if _, err := fmt.Sscanf(rate.Valor, "%f", &val); err != nil {
+		if t.Format("2006-01") != month {
 			continue
 		}
-
-		total *= (1 + val/100)
+		val, err := strconv.ParseFloat(strings.TrimSpace(rate.Valor), 64)
+		if err != nil {
+			return 0, fmt.Errorf("valor inválido na série %s: %q", series, rate.Valor)
+		}
+		return val, nil
 	}
 
-	if total == 1.0 {
-		return 0, fmt.Errorf("no data found for month %s in series %s", month, series)
-	}
-
-	return (total - 1) * 100, nil
-}
-
-func parseDate(dateStr string) time.Time {
-	t, _ := time.Parse("02/01/2006", dateStr)
-	return t
+	return 0, fmt.Errorf("sem dado para o mês %s na série %s", month, series)
 }

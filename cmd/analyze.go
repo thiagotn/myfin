@@ -70,9 +70,19 @@ var analyzeCmd = &cobra.Command{
 		if !noFetch {
 			fmt.Println("Buscando benchmarks...")
 
-			cdiVal, _ := benchmark.NewBACENClient().GetCDI(analyzeMonth)
-			ipcaVal, _ := benchmark.NewBACENClient().GetIPCA(analyzeMonth)
-			ibovVal, _ := benchmark.NewBrapiClient().GetIBOV()
+			bacen := benchmark.NewBACENClient()
+			cdiVal, err := bacen.GetCDI(analyzeMonth)
+			if err != nil {
+				fmt.Printf("  aviso CDI: %v\n", err)
+			}
+			ipcaVal, err := bacen.GetIPCA(analyzeMonth)
+			if err != nil {
+				fmt.Printf("  aviso IPCA: %v\n", err)
+			}
+			ibovVal, err := benchmark.NewIBOVClient().GetIBOV()
+			if err != nil {
+				fmt.Printf("  aviso IBOV: %v\n", err)
+			}
 
 			benchmarks = &domain.BenchmarkData{
 				Period: analyzeMonth,
