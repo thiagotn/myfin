@@ -55,25 +55,33 @@ func (tr *TerminalReporter) printClassSummary(portfolio *domain.Portfolio) {
 }
 
 func (tr *TerminalReporter) printAssetSummary(portfolio *domain.Portfolio) {
-	table := tablewriter.NewWriter(tr.w)
-	table.SetHeader([]string{"Ticker", "Nome", "Qtd", "Preço Unitário", "Valor Total", "Percentual", "Status"})
-	table.SetBorder(true)
+	fmt.Fprintf(tr.w, "Investimentos por Categoria ARCA:\n")
 
-	for _, asset := range portfolio.Assets {
-		status := colorizeStatus(asset.Status)
+	for _, group := range GroupByClass(portfolio) {
+		fmt.Fprintf(tr.w, "\n── %s ──\n", group.Label)
 
-		table.Append([]string{
-			asset.Ticker,
-			truncateName(asset.Name, 30),
-			fmt.Sprintf("%.2f", asset.Quantity),
-			"R$ " + FormatBRL(asset.UnitPrice),
-			"R$ " + FormatBRL(asset.TotalValue),
-			fmt.Sprintf("%.2f%%", asset.Percentage),
-			status,
+		table := tablewriter.NewWriter(tr.w)
+		table.SetHeader([]string{"Ticker", "Nome", "Qtd", "Preço Unitário", "Valor Total", "Percentual"})
+		table.SetBorder(true)
+
+		for _, asset := range group.Assets {
+			table.Append([]string{
+				asset.Ticker,
+				truncateName(asset.Name, 30),
+				fmt.Sprintf("%.2f", asset.Quantity),
+				"R$ " + FormatBRL(asset.UnitPrice),
+				"R$ " + FormatBRL(asset.TotalValue),
+				fmt.Sprintf("%.2f%%", asset.Percentage),
+			})
+		}
+
+		table.SetFooter([]string{"", "", "", "Subtotal",
+			"R$ " + FormatBRL(group.TotalValue),
+			fmt.Sprintf("%.2f%%", group.Percentage),
 		})
-	}
 
-	table.Render()
+		table.Render()
+	}
 }
 
 func (tr *TerminalReporter) printBenchmarks(benchmarks *domain.BenchmarkData) {

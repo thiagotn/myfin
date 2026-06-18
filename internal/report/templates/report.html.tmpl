@@ -68,6 +68,39 @@
             color: #666;
             margin-top: 5px;
         }
+        .group-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 18px 0 6px;
+        }
+        table.assets {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        table.assets th, table.assets td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        table.assets th {
+            background-color: #f1f5f9;
+            color: #333;
+        }
+        table.assets td.num, table.assets th.num {
+            text-align: right;
+            white-space: nowrap;
+        }
+        table.assets tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        table.assets tfoot td {
+            font-weight: bold;
+            border-top: 2px solid #ddd;
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -95,6 +128,44 @@
             <div id="lineChart" class="chart"></div>
         </div>
         {{end}}
+
+        <div class="chart-container">
+            <div class="chart-title">Investimentos por Categoria ARCA</div>
+            {{range .Groups}}
+            <div class="group-title">{{.Label}}</div>
+            <table class="assets">
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Nome</th>
+                        <th class="num">Qtd</th>
+                        <th class="num">Preço Unitário</th>
+                        <th class="num">Valor Total</th>
+                        <th class="num">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Assets}}
+                    <tr>
+                        <td>{{.Ticker}}</td>
+                        <td>{{.Name}}</td>
+                        <td class="num">{{printf "%.2f" .Quantity}}</td>
+                        <td class="num">R$ {{brl .UnitPrice}}</td>
+                        <td class="num">R$ {{brl .TotalValue}}</td>
+                        <td class="num">{{printf "%.2f" .Percentage}}%</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4">Subtotal</td>
+                        <td class="num">R$ {{brl .TotalValue}}</td>
+                        <td class="num">{{printf "%.2f" .Percentage}}%</td>
+                    </tr>
+                </tfoot>
+            </table>
+            {{end}}
+        </div>
 
         {{if .Benchmarks}}
         <div class="benchmarks">

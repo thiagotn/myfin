@@ -21,6 +21,7 @@ type reportData struct {
 	Portfolio      *domain.Portfolio
 	Benchmarks     *domain.BenchmarkData
 	HistoricalData []*domain.Snapshot
+	Groups         []ClassGroup
 	CreatedAt      time.Time
 }
 
@@ -40,6 +41,7 @@ func (hr *HTMLReporter) Generate(portfolio *domain.Portfolio, benchmarks *domain
 		Portfolio:      portfolio,
 		Benchmarks:     benchmarks,
 		HistoricalData: historical,
+		Groups:         GroupByClass(portfolio),
 		CreatedAt:      time.Now(),
 	}
 
