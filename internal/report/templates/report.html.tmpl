@@ -194,6 +194,8 @@
             values: [{{range .Portfolio.Classes}}{{.Percentage}},{{end}}],
             labels: [{{range .Portfolio.Classes}}"{{.Label}}",{{end}}],
             type: 'pie',
+            sort: false,
+            direction: 'clockwise',
             marker: {colors: palette},
             textinfo: 'label+percent',
             textposition: 'inside'
@@ -214,6 +216,8 @@
             labels: deviationLabels,
             values: deviationValues.map(v => Math.abs(v)),
             type: 'pie',
+            sort: false,
+            direction: 'clockwise',
             marker: {colors: palette},
             text: deviationValues.map(v => v.toFixed(2) + ' pp'),
             textinfo: 'label+text',
