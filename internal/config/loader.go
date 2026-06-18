@@ -64,11 +64,12 @@ func Save(cfg *domain.Config, configPath string) error {
 
 func DefaultConfig() *domain.Config {
 	return &domain.Config{
+		// Ordem ARCA: A (Ações) - R (Real Estate/FII) - C (Caixa/RF) - A (Internacional)
 		Classes: []domain.ClassDef{
-			{Key: "renda_fixa", Label: "C - Renda Fixa", Target: 40, Min: 35, Max: 45},
 			{Key: "acoes_br", Label: "A - Ações Brasil", Target: 30, Min: 25, Max: 35},
-			{Key: "internacional", Label: "A - Internacional", Target: 20, Min: 15, Max: 25},
 			{Key: "fii", Label: "R - FII / Real Estate", Target: 10, Min: 5, Max: 15},
+			{Key: "renda_fixa", Label: "C - Renda Fixa", Target: 40, Min: 35, Max: 45},
+			{Key: "internacional", Label: "A - Internacional", Target: 20, Min: 15, Max: 25},
 		},
 		// Mapeia categorias do relatório Rico -> classe (auto-classificação).
 		RicoMap: map[string]domain.ARCAClass{
