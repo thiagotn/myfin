@@ -66,10 +66,10 @@ func DefaultConfig() *domain.Config {
 	return &domain.Config{
 		// Ordem ARCA: A (Ações) - R (Real Estate/FII) - C (Caixa/RF) - A (Internacional)
 		Classes: []domain.ClassDef{
-			{Key: "acoes_br", Label: "A - Ações Brasil", Target: 30, Min: 25, Max: 35},
-			{Key: "fii", Label: "R - FII / Real Estate", Target: 10, Min: 5, Max: 15},
-			{Key: "renda_fixa", Label: "C - Renda Fixa", Target: 40, Min: 35, Max: 45},
-			{Key: "internacional", Label: "A - Internacional", Target: 20, Min: 15, Max: 25},
+			{Key: "acoes_br", Label: "A - Ações Brasil", Target: 5, Min: 0, Max: 10},
+			{Key: "fii", Label: "R - FII / Real Estate", Target: 15, Min: 10, Max: 20},
+			{Key: "renda_fixa", Label: "C - Renda Fixa", Target: 75, Min: 70, Max: 80},
+			{Key: "internacional", Label: "A - Internacional", Target: 5, Min: 0, Max: 10},
 		},
 		// Mapeia categorias do relatório Rico -> classe (auto-classificação).
 		RicoMap: map[string]domain.ARCAClass{
