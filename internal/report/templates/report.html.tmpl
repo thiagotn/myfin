@@ -113,13 +113,8 @@
         </div>
 
         <div class="chart-container">
-            <div class="chart-title">Alocação da Carteira por Classe</div>
-            <div id="pieChart" class="chart"></div>
-        </div>
-
-        <div class="chart-container">
-            <div class="chart-title">Desvio da Meta</div>
-            <div id="deviationChart" class="chart"></div>
+            <div class="chart-title">Alocação Real vs Meta por Classe</div>
+            <div id="allocChart" class="chart"></div>
         </div>
 
         {{if .HistoricalData}}
@@ -186,50 +181,38 @@
     </div>
 
     <script>
-        // Paleta de cores distintas (mesma cor por classe nos dois gráficos)
-        const palette = ['#4e79a7', '#f28e2b', '#59a14f', '#e15759', '#b07aa1', '#76b7b2', '#edc948', '#ff9da7', '#9c755f', '#bab0ac'];
+        // Bar Chart - Real vs Meta por classe (ordem ARCA)
+        const labels = [{{range .Portfolio.Classes}}"{{.Label}}",{{end}}];
+        const realVals = [{{range .Portfolio.Classes}}{{.Percentage}},{{end}}];
+        const metaVals = [{{range .Portfolio.Classes}}{{.Target.Target}},{{end}}];
 
-        // Pie Chart - Portfolio Allocation
-        const pieData = [{
-            values: [{{range .Portfolio.Classes}}{{.Percentage}},{{end}}],
-            labels: [{{range .Portfolio.Classes}}"{{.Label}}",{{end}}],
-            type: 'pie',
-            sort: false,
-            direction: 'clockwise',
-            marker: {colors: palette},
-            textinfo: 'label+percent',
-            textposition: 'inside'
-        }];
-
-        const pieLayout = {
-            title: 'Alocação da Carteira por Classe',
-            height: 500
+        const realTrace = {
+            x: labels,
+            y: realVals,
+            name: 'Real',
+            type: 'bar',
+            marker: {color: '#4e79a7'},
+            text: realVals.map(v => v.toFixed(1) + '%'),
+            textposition: 'outside'
+        };
+        const metaTrace = {
+            x: labels,
+            y: metaVals,
+            name: 'Meta',
+            type: 'bar',
+            marker: {color: '#f28e2b'},
+            text: metaVals.map(v => v.toFixed(1) + '%'),
+            textposition: 'outside'
         };
 
-        Plotly.newPlot('pieChart', pieData, pieLayout, {responsive: true});
-
-        // Pie Chart - Deviation from Target
-        const deviationLabels = [{{range .Portfolio.Classes}}"{{.Label}}",{{end}}];
-        const deviationValues = [{{range .Portfolio.Classes}}{{.Deviation}},{{end}}];
-
-        const deviationTrace = {
-            labels: deviationLabels,
-            values: deviationValues.map(v => Math.abs(v)),
-            type: 'pie',
-            sort: false,
-            direction: 'clockwise',
-            marker: {colors: palette},
-            text: deviationValues.map(v => v.toFixed(2) + ' pp'),
-            textinfo: 'label+text',
-            textposition: 'inside'
+        const allocLayout = {
+            barmode: 'group',
+            title: 'Alocação Real vs Meta por Classe',
+            yaxis: {title: '% da carteira'},
+            height: 450
         };
 
-        const deviationLayout = {
-            title: 'Desvio da Meta (%)',
-            height: 400
-        };
-
-        Plotly.newPlot('deviationChart', [deviationTrace], deviationLayout, {responsive: true});
+        Plotly.newPlot('allocChart', [realTrace, metaTrace], allocLayout, {responsive: true});
 
         {{if .HistoricalData}}
         // Line Chart
